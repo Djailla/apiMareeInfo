@@ -24,18 +24,20 @@ class manageSensorState:
 
     def init(self, _myPort, _LOGGER=None, version=None):
         self._myPort = _myPort
-        if (_LOGGER == None):
+        if _LOGGER == None:
             _LOGGER = logging.getLogger(__name__)
         self._LOGGER = _LOGGER
         self.version = version
 
     def getnextmaree(self, indice=1, maintenant=None):
         i = 1
-        if (maintenant == None):
+        if maintenant == None:
             maintenant = datetime.datetime.now()
         prochainemaree = None
         for x in self._myPort.getinfo().keys():
-            if (prochainemaree is None) and (maintenant < self._myPort.getinfo()[x]["dateComplete"]):
+            if (prochainemaree is None) and (
+                maintenant < self._myPort.getinfo()[x]["dateComplete"]
+            ):
                 if indice == i:
                     prochainemaree = self._myPort.getinfo()[x]
                 else:
@@ -64,10 +66,10 @@ class manageSensorState:
             info = self._myPort.getinfo()[horaireMaree]
             nieme = info["nieme"]
             jour = info["jour"]
-            status_counts["horaire_%s_%s" % (jour, nieme)] = "%s" % (info['horaire'])
-            status_counts["coeff_%s_%s" % (jour, nieme)] = "%s" % (info['coeff'])
-            status_counts["etat_%s_%s" % (jour, nieme)] = "%s" % (info['etat'])
-            status_counts["hauteur_%s_%s" % (jour, nieme)] = "%s" % (info['hauteur'])
+            status_counts["horaire_%s_%s" % (jour, nieme)] = "%s" % (info["horaire"])
+            status_counts["coeff_%s_%s" % (jour, nieme)] = "%s" % (info["coeff"])
+            status_counts["etat_%s_%s" % (jour, nieme)] = "%s" % (info["etat"])
+            status_counts["hauteur_%s_%s" % (jour, nieme)] = "%s" % (info["hauteur"])
         # pour avoir les 2 prochaines marées
         for x in range(2):
             i = x + 1
@@ -78,7 +80,7 @@ class manageSensorState:
 
         dicoPrevis = []
         for maDate in self._myPort.getprevis().keys():
-            if (maDate.replace(tzinfo=None) >= datetime.datetime.now()):
+            if maDate.replace(tzinfo=None) >= datetime.datetime.now():
                 dico = {}
                 dico["datetime"] = maDate
                 for clefPrevis in self._myPort.getprevis()[maDate].keys():

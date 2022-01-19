@@ -1,42 +1,33 @@
-import logging
 from datetime import datetime
 import json
+import logging
 import requests
 
 _LOGGER = logging.getLogger(__name__)
 
 
+def getjson(url):
+    try:
+        session = requests.Session()
+        response = session.post(url, timeout=30)
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.Timeout:
+        response = {"error": "UNKERROR_001"}
+        return response
+    except requests.exceptions.HTTPError:
+        return response.json()
+    pass
+
+
 class ListePorts:
-    def __init__(self):
-        # fonction init aucune action à réaliser
-        pass
-
-    def getjson(self, url):
-        try:
-            import json
-
-            session = requests.Session()
-            response = session.post(url, timeout=30)
-            response.raise_for_status()
-            return response.json()
-        except requests.exceptions.Timeout as error:
-            response = {"error": "UNKERROR_001"}
-            return response
-        except requests.exceptions.HTTPError as error:
-            return response.json()
-        pass
-
     def getlisteport(self, nomport):
-        url = (
-            "http://webservices.meteoconsult.fr/meteoconsultmarine/android/100/fr/v20/recherche.php?rech=%s&type=48"
-            % (nomport)
-        )
-        print(url)
-        retour = self.getjson(url)
-        print(retour)
-        for x in retour["contenu"]:
+        url = f"http://webservices.meteoconsult.fr/meteoconsultmarine/android/100/fr/v20/recherche.php?rech={nomport}&type=48"
+        ret = getjson(url)
+
+        for x in ret["contenu"]:
             print(x["id"], x["nom"], x["lat"], x["lon"])
-        return retour
+        return ret
 
 
 class ApiMareeInfo:
@@ -46,29 +37,11 @@ class ApiMareeInfo:
         self._dateCourante = None
         self._lat = None
         self._lng = None
-        pass
-
-    def getjson(self, url):
-        try:
-            import json
-
-            session = requests.Session()
-            response = session.post(url, timeout=30)
-            response.raise_for_status()
-            return response.json()
-        except requests.exceptions.Timeout as error:
-            response = {"error": "UNKERROR_001"}
-            return response
-        except requests.exceptions.HTTPError as error:
-            return response.json()
 
     def setport(self, lat, lng):
         self._lat = lat
         self._lng = lng
-        self._url = (
-            "http://webservices.meteoconsult.fr/meteoconsultmarine/androidtab/115/fr/v20/previsionsSpot.php?lat=%s&lon=%s"
-            % (lat, lng)
-        )
+        self._url = f"http://webservices.meteoconsult.fr/meteoconsultmarine/androidtab/115/fr/v20/previsionsSpot.php?lat={lat}&lon={lng}"
         """ autre url possible
         self._url = \
         #    "http://webservices.meteoconsult.fr/meteoconsultmarine/android/100/fr/v20/previsionsSpot.php?lat=%s&lon=%s" % (
@@ -77,17 +50,16 @@ class ApiMareeInfo:
         """
 
     def getinformationport(self, jsondata=None, outfile=None):
-        if jsondata == None:
-            jsondata = self.getjson(self._url)
+        if jsondata is None:
+            jsondata = getjson(self._url)
 
-        if outfile != None:
-            print(jsondata)
+        if outfile is not None:
             with open("port.json", "w") as outfile:
                 json.dump(jsondata, outfile)
+
         self._nomDuPort = jsondata["contenu"]["marees"][0]["lieu"]
         self._dateCourante = jsondata["contenu"]["marees"][0]["datetime"]
 
-        a = {}
         myMarees = {}
         j = 0
         for maree in jsondata["contenu"]["marees"][:6]:
@@ -104,7 +76,7 @@ class ApiMareeInfo:
                     "date": ele["datetime"],
                     "dateComplete": dateComplete.replace(tzinfo=None),
                 }
-                clef = "horaire_%s_%s" % (j, i)
+                clef = f"horaire_{j}_{i}"
                 myMarees[clef] = detailMaree
                 # print(clef, detailMaree)
                 i += 1

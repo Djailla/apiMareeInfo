@@ -1,6 +1,6 @@
 """Sensor for my first"""
 import logging
-from collections import defaultdict
+
 from datetime import timedelta, datetime
 
 import voluptuous as vol
@@ -12,21 +12,15 @@ from homeassistant.const import (
     CONF_LATITUDE,
     CONF_LONGITUDE,
     CONF_NAME,
-    ATTR_ATTRIBUTION,
     CONF_SCAN_INTERVAL,
 )
 
 from homeassistant.helpers.entity import Entity
 from homeassistant.util import Throttle
-from homeassistant.util import slugify
-from homeassistant.util.dt import now, parse_date
 
-
+from . import apiMareeInfo, sensorApiMaree
 from .const import (
-    DOMAIN,
-    __VERSION__,
     __name__,
-    SCAN_INTERVAL_http,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -40,8 +34,6 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
         vol.Required(CONF_LONGITUDE): cv.string,
     }
 )
-
-from . import apiMareeInfo, sensorApiMaree
 
 
 class myMareeInfo:
@@ -57,17 +49,14 @@ class myMareeInfo:
     def update(
         self,
     ):
-        import datetime
-
-        courant = datetime.datetime.now()
+        date_now = datetime.now()
         # _LOGGER.warning("-update possible- ?")
-        if (self._lastSynchro == None) or (
-            (self._lastSynchro + self._update_interval) < courant
+        if (self._lastSynchro is None) or (
+            (self._lastSynchro + self._update_interval) < date_now
         ):
-            _LOGGER.warning("-update possible- on lance")
             self._myMaree.setport(self._lat, self._lng)
             self._myMaree.getinformationport()
-            self._lastSynchro = datetime.datetime.now()
+            self._lastSynchro = date_now
 
     def getIdPort(self):
         return self._idDuPort
@@ -84,7 +73,6 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
     """Set up the platform."""
     name = config.get(CONF_NAME)
     update_interval = config.get(CONF_SCAN_INTERVAL, SCAN_INTERVAL)
-    update_interval_http = SCAN_INTERVAL_http
     try:
         idDuPort = config.get(CONF_CODE)
         lat = config.get(CONF_LATITUDE)
